@@ -3,7 +3,7 @@
   "description": "Given a JSON Schema, provide a random valid instance",
   "preferGlobal": false,
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Andrei Neculau <@andreineculau>",
   "contributors": [],
   "users": {
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "coffee-script": "~1.4.0",
+    "randexp": "~0.3.1",
     "otw": "git://github.com/andreineculau/otw.git#v0.0.2"
   },
   "devDependencies": {},

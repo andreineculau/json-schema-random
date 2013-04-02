@@ -31,6 +31,7 @@ generate.enum = (schema, method = 'all', depth = 0) ->
 
 
 generate.string = (schema, method = 'all', depth = 0) ->
+  return randexp schema.pattern  if schema.pattern
   # FIXME format should not be ignored
   randomOptions =
     minLength: schema.minLength
