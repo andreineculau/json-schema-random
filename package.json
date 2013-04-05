@@ -30,6 +30,8 @@
   "devDependencies": {},
   "bundledDependencies": [],
   "scripts": {},
-  "bin": {},
+  "bin": {
+      "json-schema-random": "cli.js"
+  },
   "main": "index.js"
 }
