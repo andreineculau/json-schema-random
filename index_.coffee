@@ -7,6 +7,8 @@ randexp = do () ->
 module.exports = generate = (schema, method = 'all', depth = 0) ->
   return schema  unless type(schema) is 'object'
 
+  return generate.enum schema, method, depth  if schema.enum
+
   switch schema.type
     when 'string', 'number', 'integer', 'boolean', 'array', 'object', 'null'
       return generate[schema.type] schema, method, depth
