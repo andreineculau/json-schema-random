@@ -3,7 +3,7 @@
   "description": "Given a JSON Schema, provide a random valid instance",
   "preferGlobal": false,
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Andrei Neculau <@andreineculau>",
   "contributors": [],
   "users": {
