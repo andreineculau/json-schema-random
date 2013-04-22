@@ -1,4 +1,4 @@
-# JSON Schema generator
+# JSON Schema random
 
 Given a JSON Schema (draft 04), provide a random valid instance.
 
@@ -21,7 +21,7 @@ This is an choppy piece of software, that is in need of some care and affection.
 # Install
 
 ```bash
-npm install git://github.com/andreineculau/json-schema-random.git#v0.0.x
+npm install json-schema-random
 ```
 
 # Usage

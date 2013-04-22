@@ -1,11 +1,8 @@
 {
   "name": "json-schema-random",
   "description": "Given a JSON Schema, provide a random valid instance",
-  "preferGlobal": false,
-  "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Andrei Neculau <@andreineculau>",
-  "contributors": [],
   "users": {
     "andreineculau": true
   },
@@ -20,18 +17,14 @@
   ],
   "license": "Apache 2",
   "engines": {
-    "node": "~0.8.21"
+    "node": ">=0.8.21"
   },
   "dependencies": {
-    "coffee-script": "~1.4.0",
+    "coffee-script": "~1.6.0",
     "randexp": "~0.3.1",
     "otw": "git://github.com/andreineculau/otw.git#v0.0.2"
   },
-  "devDependencies": {},
-  "bundledDependencies": [],
-  "scripts": {},
   "bin": {
       "json-schema-random": "cli.js"
-  },
-  "main": "index.js"
+  }
 }
