@@ -5,11 +5,11 @@ randexp = do () ->
   (pattern) -> new _randexp(pattern).gen()
 
 
-module.exports = exports = (schema, method = 'all') ->
-  generator = new exports.Generator
-    root_schema: schema
-    method: method
+module.exports = exports = (schema, options = {}) ->
+  options.method = 'all' unless options.method
+  options.root_schema = schema
 
+  generator = new exports.Generator options
   return generator.generate()
 
 class exports.Generator
