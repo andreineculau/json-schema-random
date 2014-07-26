@@ -8,7 +8,8 @@ var fs = require('fs'),
 
 var args = minimist(process.argv.slice(2), {
     default: {
-        method: 'all'
+        method: 'all',
+        additional: true
     }
 });
 

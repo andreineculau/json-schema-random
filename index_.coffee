@@ -148,7 +148,7 @@ class exports.Generator
       for i in [0..howManyMoreProperties]
         o[random 'string', {minimum: 0, maximum: 10}] = @generate schema.additionalProperties, depth+1
 
-    else if schema.additionalProperties isnt false
+    else if @options.additional and schema.additionalProperties isnt false
       o[random 'string', {minimum: 0, maximum: 10}] = @generate {type: 'any'}, depth+1
 
     return o
