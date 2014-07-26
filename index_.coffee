@@ -7,16 +7,20 @@ randexp = do () ->
 
 module.exports = exports = (schema, method = 'all') ->
   generator = new exports.Generator
+    root_schema: schema
     method: method
 
-  return generator.generate schema
+  return generator.generate()
 
 class exports.Generator
 
   constructor: (options) ->
     @method = options.method
+    @root_schema = options.root_schema
 
-  generate: (schema, depth = 0) ->
+  generate: (schema = null, depth = 0) ->
+
+    schema = @root_schema unless schema
 
     return schema  unless type(schema) is 'object'
 
