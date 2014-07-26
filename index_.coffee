@@ -46,7 +46,7 @@ class exports.Generator
     randomOptions =
       minimum: 0
       maximum: schema.enum.length - 1
-    randomIndex = random 'integer', randomOptions
+    randomIndex = @random 'integer', randomOptions
     enumValue = schema.enum[randomIndex]
     @generate enumValue, depth + 1
 
@@ -58,7 +58,7 @@ class exports.Generator
 
   # type = boolean
   boolean: (schema, depth = 0) ->
-    random 'boolean'
+    @random 'boolean'
 
 
   # type = number / integer
@@ -71,14 +71,14 @@ class exports.Generator
     maximum = schema.exclusiveMaximum - 1  if schema.exclusiveMaximum
     maximum ?= schema.maximum
     decimals = 0
-    decimals = random 'number', {minimum: 0, maximum: 3}  if schema.type is 'number'
+    decimals = @random 'number', {minimum: 0, maximum: 3}  if schema.type is 'number'
 
     randomOptions =
       minimum: minimum
       maximum: maximum
       divisibleBy: schema.divisibleBy
       decimals: decimals
-    random 'number', randomOptions
+    @random 'number', randomOptions
 
 
   # type = string
@@ -88,7 +88,7 @@ class exports.Generator
     randomOptions =
       minLength: schema.minLength
       maxLength: schema.maxLength
-    random 'string', randomOptions
+    @random 'string', randomOptions
 
 
   # type = array
@@ -113,11 +113,11 @@ class exports.Generator
       if type(schema.maxItems) isnt 'undefined'
         maximum = schema.maxItems - o.length
       else
-        maximum = o.length + random 'integer', {minimum: 0, maximum: 2}
+        maximum = o.length + @random 'integer', {minimum: 0, maximum: 2}
       randomOptions =
         minimum: minimum
         maximum: maximum
-      howManyMoreItems = random 'integer', randomOptions
+      howManyMoreItems = @random 'integer', randomOptions
       while howManyMoreItems
         howManyMoreItemsLeft = howManyMoreItems - o.length
         if howManyMoreItemsLeft
@@ -144,12 +144,12 @@ class exports.Generator
         minimum: 1
         maximum: 3
         # minimum set to 1, not 0, on purpose
-      howManyMoreProperties = random 'integer', randomOptions
+      howManyMoreProperties = @random 'integer', randomOptions
       for i in [0..howManyMoreProperties]
-        o[random 'string', {minimum: 0, maximum: 10}] = @generate schema.additionalProperties, depth+1
+        o[@random 'string', {minimum: 0, maximum: 10}] = @generate schema.additionalProperties, depth+1
 
     else if @options.additional and schema.additionalProperties isnt false
-      o[random 'string', {minimum: 0, maximum: 10}] = @generate {type: 'any'}, depth+1
+      o[@random 'string', {minimum: 0, maximum: 10}] = @generate {type: 'any'}, depth+1
 
     return o
 
@@ -160,7 +160,7 @@ class exports.Generator
     randomOptions =
       minimum: 0
       maximum: types.length-1
-    typeIndex = random 'integer', randomOptions
+    typeIndex = @random 'integer', randomOptions
     @generate {type: types[typeIndex]}, depth + 1
 
 
@@ -170,7 +170,7 @@ class exports.Generator
     randomOptions =
       minimum: 0
       maximum: schema.type.length-1
-    typeIndex = random 'integer', randomOptions
+    typeIndex = @random 'integer', randomOptions
     @generate schema.type[typeIndex], depth + 1
 
 
@@ -186,3 +186,15 @@ class exports.Generator
         throw "$ref traversal failed: " + ref
 
     return @generate schema, depth
+
+  random: (type, options) ->
+    if @options.random
+      return random.apply random, arguments
+
+    switch type
+      when 'number', 'integer', 'int'
+        0
+      when 'boolean', 'bool'
+        false
+      when 'string'
+        ""
