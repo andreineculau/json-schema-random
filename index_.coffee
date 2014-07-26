@@ -14,12 +14,11 @@ module.exports = exports = (schema, options = {}) ->
 class exports.Generator
 
   constructor: (options) ->
-    @method = options.method
-    @root_schema = options.root_schema
+    @options = options
 
   generate: (schema = null, depth = 0) ->
 
-    schema = @root_schema unless schema
+    schema = @options.root_schema unless schema
 
     return schema  unless type(schema) is 'object'
 
@@ -134,7 +133,7 @@ class exports.Generator
   object: (schema, depth = 0) ->
     o = {}
     for key, prop of schema.properties
-      continue  unless @method is 'all' or (type(schema.required) is 'array' and key in schema.required)
+      continue  unless @options.method is 'all' or (type(schema.required) is 'array' and key in schema.required)
       # FIXME
       # continue  if random 'boolean'
       o[key] = @generate prop, depth + 1
@@ -180,7 +179,7 @@ class exports.Generator
     if path[0] != '#'
       throw "ref does not start with #: " + ref
 
-    schema = @root_schema
+    schema = @options.root_schema
     for name in path.slice(1)
       schema = schema[name]
       if not schema
