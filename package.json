@@ -22,7 +22,8 @@
   "dependencies": {
     "coffee-script": "~1.6.0",
     "randexp": "~0.3.1",
-    "otw": "git://github.com/andreineculau/otw.git#v0.0.2"
+    "otw": "git://github.com/andreineculau/otw.git#v0.0.2",
+    "minimist": "~0.2.0"
   },
   "bin": {
       "json-schema-random": "cli.js"

@@ -6,7 +6,6 @@ randexp = do () ->
 
 
 module.exports = exports = (schema, options = {}) ->
-  options.method = 'all' unless options.method
   options.root_schema = schema
 
   generator = new exports.Generator options
