@@ -131,6 +131,10 @@ class exports.Generator
 
   # type = object
   object: (schema, depth = 0) ->
+    if schema.oneOf
+      oneof_schema = type: schema.oneOf
+      return @oneOf oneof_schema, depth
+
     o = {}
     for key, prop of schema.properties
       continue  unless @options.method is 'all' or (type(schema.required) is 'array' and key in schema.required)
