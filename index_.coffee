@@ -155,6 +155,9 @@ class exports.Generator
     else if @options.additional and schema.additionalProperties isnt false
       o[@random 'string', {minimum: 0, maximum: 10}] = @generate {type: 'any'}, depth+1
 
+    if @options.schemaid and schema.id
+      o.$schema = schema.id
+
     return o
 
 
