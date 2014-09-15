@@ -5,145 +5,203 @@ randexp = do () ->
   (pattern) -> new _randexp(pattern).gen()
 
 
-module.exports = generate = (schema, method = 'all', depth = 0) ->
-  return schema  unless type(schema) is 'object'
+module.exports = exports = (schema, options = {}) ->
+  options.root_schema = schema
 
-  return generate.enum schema, method, depth  if schema.enum
+  generator = new exports.Generator options
+  return generator.generate()
 
-  switch schema.type
-    when 'string', 'number', 'integer', 'boolean', 'array', 'object', 'null'
-      return generate[schema.type] schema, method, depth
-    else
-      if type(schema.type) is 'array'
-        return generate.oneOf schema, method, depth
-      # FIXME what if type(schema.type) = 'object' and _.size(schema.type) > 0 ?
-      if schema.type is 'any' or type(schema.type) is 'undefined' or (type(schema.type) is 'object' and _.size(schema.type) is 0)
-        return generate.any schema, method, depth
-      # FIXME what type is this?
-      console.log schema.type
-      throw "what type is this ?"
+class exports.Generator
 
+  constructor: (options) ->
+    @options = options
 
-# enum
-generate.enum = (schema, method = 'all', depth = 0) ->
-  randomOptions =
-    minimum: 0
-    maximum: schema.enum.length - 1
-  randomIndex = random 'integer', randomOptions
-  enumValue = schema.enum[randomIndex]
-  generate enumValue, method, depth + 1
+  generate: (schema = null, depth = 0) ->
 
+    schema = @options.root_schema unless schema
 
-# type = null
-generate.null = () ->
-  null
+    return schema  unless type(schema) is 'object'
 
+    return @enum schema, depth  if schema.enum
 
-# type = boolean
-generate.boolean = (schema, method = 'all', depth = 0) ->
-  random 'boolean'
+    if schema.$ref
+      return @ref schema.$ref, depth
+
+    switch schema.type
+      when 'string', 'number', 'integer', 'boolean', 'array', 'object', 'null'
+        return @[schema.type] schema, depth
+      else
+        if type(schema.type) is 'array'
+          return @oneOf schema, depth
+        # FIXME what if type(schema.type) = 'object' and _.size(schema.type) > 0 ?
+        if schema.type is 'any' or type(schema.type) is 'undefined' or (type(schema.type) is 'object' and _.size(schema.type) is 0)
+          return @any schema, depth
+        # FIXME what type is this?
+        console.log schema.type
+        throw "what type is this ?"
 
 
-# type = number / integer
-generate.number = generate.integer = (schema, method = 'all', depth = 0) ->
-  minimum = schema.exclusiveMinimum + 1  if schema.exclusiveMinimum
-  minimum ?= schema.minimum
-  maximum = schema.exclusiveMaximum - 1  if schema.exclusiveMaximum
-  maximum ?= schema.maximum
-  decimals = 0
-  decimals = random 'number', {minimum: 0, maximum: 3}  if schema.type is 'number'
-
-  randomOptions =
-    minimum: minimum
-    maximum: maximum
-    divisibleBy: schema.divisibleBy
-    decimals: decimals
-  random 'number', randomOptions
+  # enum
+  'enum': (schema, depth = 0) ->
+    randomOptions =
+      minimum: 0
+      maximum: schema.enum.length - 1
+    randomIndex = @random 'integer', randomOptions
+    enumValue = schema.enum[randomIndex]
+    @generate enumValue, depth + 1
 
 
-# type = string
-generate.string = (schema, method = 'all', depth = 0) ->
-  return randexp schema.pattern  if schema.pattern
-  # FIXME format should not be ignored
-  randomOptions =
-    minLength: schema.minLength
-    maxLength: schema.maxLength
-  random 'string', randomOptions
+  # type = null
+  'null': () ->
+    null
 
 
-# type = array
-generate.array = (schema, method = 'all', depth = 0) ->
-  o = []
-  if type(schema.items) is 'array' and schema.items.length
-    for itemSchema in schema.items
-      o.push generate itemSchema, method, depth + 1
+  # type = boolean
+  boolean: (schema, depth = 0) ->
+    @random 'boolean'
 
-  if schema.additionalItems
-    if type(schema.minItems) isnt 'undefined'
-      minimum = schema.minItems - o.length
-    else
-      minimum = 1
-    minimum = 1  if minimum < 0
-    # minimum set to 1, not 0, on purpose
-    if type(schema.maxItems) isnt 'undefined'
-      maximum = schema.maxItems - o.length
-    else
-      maximum = o.length + random 'integer', {minimum: 0, maximum: 2}
+
+  # type = number / integer
+  number: (schema, depth = 0) ->
+    @integer schema, depth
+
+  integer: (schema, depth = 0) ->
+    minimum = schema.exclusiveMinimum + 1  if schema.exclusiveMinimum
+    minimum ?= schema.minimum
+    maximum = schema.exclusiveMaximum - 1  if schema.exclusiveMaximum
+    maximum ?= schema.maximum
+    decimals = 0
+    decimals = @random 'number', {minimum: 0, maximum: 3}  if schema.type is 'number'
+
     randomOptions =
       minimum: minimum
       maximum: maximum
-    howManyMoreItems = random 'integer', randomOptions
-    while howManyMoreItems
-      howManyMoreItemsLeft = howManyMoreItems - o.length
-      if howManyMoreItemsLeft
-        for i in [1..howManyMoreItemsLeft]
-          o.push generate schema.additionalItems, method, depth + 1
-        o = _.deepUnique o  if schema.uniqueItems
-      howManyMoreItemsLeft = howManyMoreItems - o.length
-      break  unless howManyMoreItemsLeft
-  o
+      divisibleBy: schema.divisibleBy
+      decimals: decimals
+    @random 'number', randomOptions
 
 
-# type = object
-generate.object = (schema, method = 'all', depth = 0) ->
-  o = {}
-  for key, prop of schema.properties
-    continue  unless method is 'all' or (type(schema.required) is 'array' and key in schema.required)
-    # FIXME
-    # continue  if random 'boolean'
-    o[key] = generate prop, method, depth + 1
-
-  if type(schema.additionalProperties) is 'object'
-    # break  if schema.additionalProperties.$ref?[0] is '#'
+  # type = string
+  string: (schema, depth = 0) ->
+    return randexp schema.pattern  if schema.pattern
+    # FIXME format should not be ignored
     randomOptions =
-      minimum: 1
-      maximum: 3
+      minLength: schema.minLength
+      maxLength: schema.maxLength
+    @random 'string', randomOptions
+
+
+  # type = array
+  array: (schema, depth = 0) ->
+    o = []
+
+    if type(schema.items) is 'object' and schema.items.$ref
+      result = @ref schema.items.$ref, depth
+      return [result]
+
+    if type(schema.items) is 'array' and schema.items.length
+      for itemSchema in schema.items
+        o.push @generate itemSchema, depth + 1
+
+    if schema.additionalItems
+      if type(schema.minItems) isnt 'undefined'
+        minimum = schema.minItems - o.length
+      else
+        minimum = 1
+      minimum = 1  if minimum < 0
       # minimum set to 1, not 0, on purpose
-    howManyMoreProperties = random 'integer', randomOptions
-    for i in [0..howManyMoreProperties]
-      o[random 'string', {minimum: 0, maximum: 10}] = generate schema.additionalProperties, method, depth+1
+      if type(schema.maxItems) isnt 'undefined'
+        maximum = schema.maxItems - o.length
+      else
+        maximum = o.length + @random 'integer', {minimum: 0, maximum: 2}
+      randomOptions =
+        minimum: minimum
+        maximum: maximum
+      howManyMoreItems = @random 'integer', randomOptions
+      while howManyMoreItems
+        howManyMoreItemsLeft = howManyMoreItems - o.length
+        if howManyMoreItemsLeft
+          for i in [1..howManyMoreItemsLeft]
+            o.push @generate schema.additionalItems, depth + 1
+          o = _.deepUnique o  if schema.uniqueItems
+        howManyMoreItemsLeft = howManyMoreItems - o.length
+        break  unless howManyMoreItemsLeft
+    o
 
-  else if schema.additionalProperties isnt false
-    o[random 'string', {minimum: 0, maximum: 10}] = generate {type: 'any'}, method, depth+1
 
-  return o
+  # type = object
+  object: (schema, depth = 0) ->
+    if schema.oneOf
+      oneof_schema = type: schema.oneOf
+      return @oneOf oneof_schema, depth
+
+    o = {}
+    for key, prop of schema.properties
+      continue  unless @options.method is 'all' or (type(schema.required) is 'array' and key in schema.required)
+      # FIXME
+      # continue  if random 'boolean'
+      o[key] = @generate prop, depth + 1
+
+    if type(schema.additionalProperties) is 'object'
+      # break  if schema.additionalProperties.$ref?[0] is '#'
+      randomOptions =
+        minimum: 1
+        maximum: 3
+        # minimum set to 1, not 0, on purpose
+      howManyMoreProperties = @random 'integer', randomOptions
+      for i in [0..howManyMoreProperties]
+        o[@random 'string', {minimum: 0, maximum: 10}] = @generate schema.additionalProperties, depth+1
+
+    else if @options.additional and schema.additionalProperties isnt false
+      o[@random 'string', {minimum: 0, maximum: 10}] = @generate {type: 'any'}, depth+1
+
+    if @options.schemaid and schema.id
+      o.$schema = schema.id
+
+    return o
 
 
-# type = any
-generate.any = (schema, method = 'all', depth = 0) ->
-  types = ['string', 'number', 'integer', 'boolean', 'object', 'null']
-  randomOptions =
-    minimum: 0
-    maximum: types.length-1
-  typeIndex = random 'integer', randomOptions
-  generate {type: types[typeIndex]}, method, depth + 1
+  # type = any
+  any: (schema, depth = 0) ->
+    types = ['string', 'number', 'integer', 'boolean', 'object', 'null']
+    randomOptions =
+      minimum: 0
+      maximum: types.length-1
+    typeIndex = @random 'integer', randomOptions
+    @generate {type: types[typeIndex]}, depth + 1
 
 
-# type = []
-generate.oneOf = (schema, method = 'all', depth = 0) ->
-  return 0  unless schema.type.length # treat as 'any'
-  randomOptions =
-    minimum: 0
-    maximum: schema.type.length-1
-  typeIndex = random 'integer', randomOptions
-  generate schema.type[typeIndex], method, depth + 1
+  # type = []
+  oneOf: (schema, depth = 0) ->
+    return 0  unless schema.type.length # treat as 'any'
+    randomOptions =
+      minimum: 0
+      maximum: schema.type.length-1
+    typeIndex = @random 'integer', randomOptions
+    @generate schema.type[typeIndex], depth + 1
+
+
+  ref: (ref, depth = 0) ->
+    path = ref.split('/')
+    if path[0] != '#'
+      throw "ref does not start with #: " + ref
+
+    schema = @options.root_schema
+    for name in path.slice(1)
+      schema = schema[name]
+      if not schema
+        throw "$ref traversal failed: " + ref
+
+    return @generate schema, depth
+
+  random: (type, options) ->
+    if @options.random
+      return random.apply random, arguments
+
+    switch type
+      when 'number', 'integer', 'int'
+        0
+      when 'boolean', 'bool'
+        false
+      when 'string'
+        ""

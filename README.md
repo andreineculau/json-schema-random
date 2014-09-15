@@ -37,6 +37,14 @@ generate = require 'json-schema-random'
 generate {type: 'number'}
 ```
 
+## Command-line options
+
+`--schemaid` - set `$schema` field to `id` found in the schema document
+
+`--no-additional` - don't generate fields for `additionalProperties`
+
+`--no-random` - return blank values instead of random
+
 # License
 
 Apache 2.0
